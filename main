@@ -1,4 +1,10 @@
 import time
+
+print('vision 1.0.0,made by 熙影镜')
+print('感谢up主少言的信提供的数据支持')
+# print(
+#    '已知问题: 分辨善恶果进行任意数量计算均至少需要10分钟'
+# )
 class sumsss:
    def __init__(self,name,sums):
       self.name = name
@@ -7,12 +13,16 @@ class dt:
    def __init__(self,cost, name):
       self.cost = cost
       self.gets = {}
+      self.getones = {}
       self.name = name
    def addget(self,name,pb):
       self.gets[name] = pb
+      self.getones[name] = 1.0/pb
+      # print(1.0/pb)
 
    def getone(self,name):
-      return 1.0/self.gets[name]
+      # print(self.getones[name])
+      return self.getones[name]
 
    def playsum(self, ps, sums=1.0):
       for i in self.gets:
@@ -52,167 +62,302 @@ dts = []
 sumf = 0
 bestsolves = []
 mincost = None
+lastcost = mincost
 equr = False
 def solve(needs):
-   global bestsolves,mincost
+   global bestsolves,mincost,lastcost,sumf
    bestsolves = []
    mincost = None
    solve2(needs, 0, [])
    lastcost = mincost
 
+   # def deep(needs1):
+   #    global lastcost
+   #    for i1 in needs1:
+   #       if len(cls[i1].next):
+   #          f1 = needs1.copy()
+   #          f1,lastcost = loplist(lastcost, f1, i1)
+   #          print(f1)
+   #          deep(f1)
+   #
+   # deep(needs)
    for i in needs:
       if len(cls[i].next):
+         sumf += 1
+         print(sumf, end='\r')
          f = needs.copy()
          lastcost = loplist(lastcost,f,i)
          for j in f:
             if len(cls[j].next):
                g = f.copy()
+               sumf += 1
+               print(sumf, end='\r')
+               # print(g,1)
                lastcost = loplist(lastcost, g, j)
                for k in g:
                   if len(cls[k].next):
                      t = g.copy()
+                     sumf += 1
+                     print(sumf, end='\r')
+                     # print(t,2)
                      lastcost = loplist(lastcost, t, k)
+                     for fs in t:
+                        if len(cls[k].next):
+                           sumf+=1
+                           print(sumf,end='\r')
+                           r = t.copy()
+                           # print(t, 2)
+                           lastcost = loplist(lastcost, r, fs)
 
 
-def loplist(lastcost,f,i):
+def loplist(lastcost1,f,i):
    global  equr
    while f.get(i,0) != 0:
-      # print(f)
+
       cls[i].getnext(1, f)
+      # print(f)
       equr = False
       solve2(f, 0, [])
-      if not equr and lastcost is not None:
-         return lastcost
+      if not equr and lastcost1 is not None:
+         # print(lastcost1,1)
+         return f,lastcost1
       else:
-         lastcost = mincost
+         lastcost1 = mincost
+   # print(f, lastcost, i)
+   return lastcost
+   #
 
-def solve2(needs, cost, dts):
+def solve2(needs, cost, dts1):
    global bestsolves, mincost, sumf, equr
    for i in needs:
+      # print(cls[i].dtlist)
       if cls[i].dtlist is not None:
          for j in cls[i].dtlist:
             # print(cost, j.name, needs, mincost)
-            sums = j.getone(i)*needs[i]
-            if int(sums)!=sums:
-               sums = int(sums) + 1
-            cost =cost +  sums*j.cost
-            p = sumsss(j.name, sums)
-            dts.append(p)
+            sums = int(j.getone(i)*needs[i] + 0.99999)
+            if not sums:
+               sums+=1
+            cost += sums * j.cost
+            if mincost and cost > mincost:
+               cost = cost - sums * j.cost
+               continue
+            p1 = (j.name, sums)
+            dts1.append(p1)
             p = {}
-            sumf += 1
-            print(sumf,end='\r')
             j.playsum(p,sums)
             f = needs.copy()
             deletes(f,p)
             # print(cost, j.name, f,mincost)
             if len(f):
-               solve2(f, cost, dts)
+               solve2(f, cost, dts1)
             else:
                if mincost == cost:
                   equr = True
                if mincost is None or mincost > cost:
                   equr = True
-                  bestsolves = dts.copy()
+                  bestsolves = dts1.copy()
                   mincost = cost
             cost = cost - sums * j.cost
-            dts.pop()
+            dts1.pop()
+def getneed():
+   try:
+      with open('need.txt','r') as f:
+         needs = {}
+         f.readline()
+         while True:
+            a = f.readline()
+            b = f.readline()
+            if not a or not b:
+               return needs
+            if int(b[:-1])!= 0:
+               needs[a[:-1]] = int(b[:-1])
 
+   except OSError:
+      print('cannot find need.txt,auto write')
+      with open('need.txt','w') as f:
+         f.write('需求\n')
+         f.write('分辨善恶之果\n')
+         f.write(str(0)+'\n')
 
-def initclanddts(cls):
-   p01 = dt(12,'1-1')
-   p01.addget('颤颤之齿',2.3)
-   p01.addget('苦盐簇', 0.3)
-   p01.addget('破碎骨片', 0.3)
-   p01.addget('银原矿石', 0.3)
-   p01.addget('清扫咒', 0.3)
-   dts.append(p01)
+         f.write('长青剑\n')
+         f.write(str(0) + '\n')
 
-   p02 = dt(12,'1-4')
-   p02.addget('颤颤之齿', 0.3)
-   p02.addget('苦盐簇', 0.3)
-   p02.addget('破碎骨片', 0.3)
-   p02.addget('银原矿石', 0.3)
-   p02.addget('清扫咒', 2.3)
-   dts.append(p02)
+         f.write('金羊毛\n')
+         f.write(str(0) + '\n')
 
-   p03 = dt(12,'1-5')
-   p03.addget('颤颤之齿', 0.3)
-   p03.addget('苦盐簇', 0.3)
-   p03.addget('破碎骨片', 0.3)
-   p03.addget('银原矿石', 2.3)
-   p03.addget('清扫咒', 0.3)
-   dts.append(p03)
+         f.write('床下怪物\n')
+         f.write(str(0) + '\n')
 
-   p04 = dt(12,'1-6')
-   p04.addget('颤颤之齿', 0.3)
-   p04.addget('苦盐簇', 0.3)
-   p04.addget('破碎骨片', 2.3)
-   p04.addget('银原矿石', 0.3)
-   p04.addget('清扫咒', 0.3)
-   dts.append(p04)
+         f.write('不腐猴爪\n')
+         f.write(str(0) + '\n')
 
-   p05 = dt(12, '1-7')
-   p05.addget('颤颤之齿', 0.3)
-   p05.addget('苦盐簇', 0.3)
-   p05.addget('破碎骨片', 0.3)
-   p05.addget('银原矿石', 0.3)
-   p05.addget('清扫咒', 0.3)
-   p05.addget('幸运咒语', 0.7)
-   dts.append(p05)
+         f.write('幼骨龙标本\n')
+         f.write(str(0) + '\n')
 
-   p06 = dt(12, '1-8')
-   p06.addget('颤颤之齿', 0.3)
-   p06.addget('苦盐簇', 0.3)
-   p06.addget('破碎骨片', 0.3)
-   p06.addget('银原矿石', 0.3)
-   p06.addget('清扫咒', 0.3)
-   p06.addget('粗糙银锭', 0.7)
-   dts.append(p06)
+         f.write('银光子弹\n')
+         f.write(str(0) + '\n')
 
-   p07 = dt(12, '1-11')
-   p07.addget('颤颤之齿', 0.3)
-   p07.addget('苦盐簇', 0.3)
-   p07.addget('破碎骨片', 0.3)
-   p07.addget('银原矿石', 0.3)
-   p07.addget('清扫咒', 0.3)
-   p07.addget('未知种根骨', 0.7)
-   dts.append(p07)
+         f.write('狂人絮语\n')
+         f.write(str(0) + '\n')
 
-   p08 = dt(12, '1-12')
-   p08.addget('颤颤之齿', 0.3)
-   p08.addget('苦盐簇', 0.3)
-   p08.addget('破碎骨片', 0.3)
-   p08.addget('银原矿石', 0.3)
-   p08.addget('清扫咒', 0.3)
-   p08.addget('精磨苦盐', 0.7)
-   dts.append(p08)
+         f.write('铂金通灵板\n')
+         f.write(str(0) + '\n')
 
-   p09 = dt(12, '1-14')
-   p09.addget('颤颤之齿', 0.3)
-   p09.addget('苦盐簇', 0.3)
-   p09.addget('破碎骨片', 0.3)
-   p09.addget('银原矿石', 0.3)
-   p09.addget('清扫咒', 0.3)
-   p09.addget('液化战栗', 0.7)
-   dts.append(p09)
+         f.write('金爪灵摆\n')
+         f.write(str(0) + '\n')
 
-   p10 = dt(12, '1-15')
-   p10.addget('颤颤之齿', 0.3)
-   p10.addget('苦盐簇', 0.3)
-   p10.addget('破碎骨片', 0.3)
-   p10.addget('银原矿石', 0.3)
-   p10.addget('清扫咒', 0.3)
-   p10.addget('罗马金币', 0.7)
-   dts.append(p10)
+         f.write('齿咬盒\n')
+         f.write(str(0) + '\n')
 
-   p11 = dt(12, '1-16')
-   p11.addget('液化战栗', 0.3)
-   p11.addget('精磨苦盐', 0.3)
-   p11.addget('未知种根骨', 0.3)
-   p11.addget('粗糙银锭', 0.3)
-   p11.addget('清扫咒', 0.3)
-   p11.addget('罗马金币', 0.3)
-   dts.append(p11)
+         f.write('盐封曼德拉\n')
+         f.write(str(0) + '\n')
+
+         f.write('双头形骨架\n')
+         f.write(str(0) + '\n')
+
+         f.write('祝圣秘银\n')
+         f.write(str(0) + '\n')
+
+         f.write('百灵百验鸟\n')
+         f.write(str(0) + '\n')
+
+         f.write('罗马金币\n')
+         f.write(str(0) + '\n')
+
+         f.write('幸运咒语\n')
+         f.write(str(0) + '\n')
+
+         f.write('粗糙银锭\n')
+         f.write(str(0) + '\n')
+
+         f.write('未知种根骨\n')
+         f.write(str(0) + '\n')
+
+         f.write('精磨苦盐\n')
+         f.write(str(0) + '\n')
+
+         f.write('液化战栗\n')
+         f.write(str(0) + '\n')
+
+         f.write('清扫咒\n')
+         f.write(str(0) + '\n')
+
+         f.write('银原矿石\n')
+         f.write(str(0) + '\n')
+
+         f.write('破碎骨片\n')
+         f.write(str(0) + '\n')
+
+         f.write('苦盐簇\n')
+         f.write(str(0) + '\n')
+
+         f.write('颤颤之齿\n')
+         f.write(str(0) + '\n')
+         f.close()
+   input('请在文件中修改你所需的数量')
+   getneed()
+
+def initcl(f):
+   for i in dts:
+      if i.gets.get(f.name, 0.0) != 0:
+         # print(f.name,i.name)
+         f.dtlist.append(i)
+         # print(i.gets.get(f.name, 0.0))
+def initclanddts():
+   # p01 = dt(12,'1-1')
+   # p01.addget('颤颤之齿',2.3)
+   # p01.addget('苦盐簇', 0.3)
+   # p01.addget('破碎骨片', 0.3)
+   # p01.addget('银原矿石', 0.3)
+   # p01.addget('清扫咒', 0.3)
+   # dts.append(p01)
+
+   # p02 = dt(12,'1-4')
+   # p02.addget('颤颤之齿', 0.3)
+   # p02.addget('苦盐簇', 0.3)
+   # p02.addget('破碎骨片', 0.3)
+   # p02.addget('银原矿石', 0.3)
+   # p02.addget('清扫咒', 2.3)
+   # dts.append(p02)
+
+   # p03 = dt(12,'1-5')
+   # p03.addget('颤颤之齿', 0.3)
+   # p03.addget('苦盐簇', 0.3)
+   # p03.addget('破碎骨片', 0.3)
+   # p03.addget('银原矿石', 2.3)
+   # p03.addget('清扫咒', 0.3)
+   # dts.append(p03)
+
+   # p04 = dt(12,'1-6')
+   # p04.addget('颤颤之齿', 0.3)
+   # p04.addget('苦盐簇', 0.3)
+   # p04.addget('破碎骨片', 2.3)
+   # p04.addget('银原矿石', 0.3)
+   # p04.addget('清扫咒', 0.3)
+   # dts.append(p04)
+   #
+   # p05 = dt(12, '1-7')
+   # p05.addget('颤颤之齿', 0.3)
+   # p05.addget('苦盐簇', 0.3)
+   # p05.addget('破碎骨片', 0.3)
+   # p05.addget('银原矿石', 0.3)
+   # p05.addget('清扫咒', 0.3)
+   # p05.addget('幸运咒语', 0.7)
+   # dts.append(p05)
+   #
+   # p06 = dt(12, '1-8')
+   # p06.addget('颤颤之齿', 0.3)
+   # p06.addget('苦盐簇', 0.3)
+   # p06.addget('破碎骨片', 0.3)
+   # p06.addget('银原矿石', 0.3)
+   # p06.addget('清扫咒', 0.3)
+   # p06.addget('粗糙银锭', 0.7)
+   # dts.append(p06)
+   #
+   # p07 = dt(12, '1-11')
+   # p07.addget('颤颤之齿', 0.3)
+   # p07.addget('苦盐簇', 0.3)
+   # p07.addget('破碎骨片', 0.3)
+   # p07.addget('银原矿石', 0.3)
+   # p07.addget('清扫咒', 0.3)
+   # p07.addget('未知种根骨', 0.7)
+   # dts.append(p07)
+   #
+   # p08 = dt(12, '1-12')
+   # p08.addget('颤颤之齿', 0.3)
+   # p08.addget('苦盐簇', 0.3)
+   # p08.addget('破碎骨片', 0.3)
+   # p08.addget('银原矿石', 0.3)
+   # p08.addget('清扫咒', 0.3)
+   # p08.addget('精磨苦盐', 0.7)
+   # dts.append(p08)
+   #
+   # p09 = dt(12, '1-14')
+   # p09.addget('颤颤之齿', 0.3)
+   # p09.addget('苦盐簇', 0.3)
+   # p09.addget('破碎骨片', 0.3)
+   # p09.addget('银原矿石', 0.3)
+   # p09.addget('清扫咒', 0.3)
+   # p09.addget('液化战栗', 0.7)
+   # dts.append(p09)
+   #
+   # p10 = dt(12, '1-15')
+   # p10.addget('颤颤之齿', 0.3)
+   # p10.addget('苦盐簇', 0.3)
+   # p10.addget('破碎骨片', 0.3)
+   # p10.addget('银原矿石', 0.3)
+   # p10.addget('清扫咒', 0.3)
+   # p10.addget('罗马金币', 0.7)
+   # dts.append(p10)
+   #
+   # p11 = dt(12, '1-16')
+   # p11.addget('液化战栗', 0.3)
+   # p11.addget('精磨苦盐', 0.3)
+   # p11.addget('未知种根骨', 0.3)
+   # p11.addget('粗糙银锭', 0.3)
+   # p11.addget('清扫咒', 0.3)
+   # p11.addget('罗马金币', 0.3)
+   # dts.append(p11)
 
    # p12 = dt(14, '2-1')
    # p12.addget('液化战栗', 0.3)
@@ -223,102 +368,102 @@ def initclanddts(cls):
    # dts.append(p12)
 
    p14 = dt(16, '2-3')
-   p14.addget('液化战栗', 0.3)
-   p14.addget('精磨苦盐', 0.3)
-   p14.addget('未知种根骨', 0.3)
-   p14.addget('粗糙银锭', 0.3)
-   p14.addget('幸运咒语', 0.3)
-   p14.addget('银原矿石', 2.3)
-   p14.addget('祝圣秘银', 0.3)
+   p14.addget('液化战栗', 0.027)
+   p14.addget('精磨苦盐', 0.017)
+   p14.addget('未知种根骨', 0.044)
+   p14.addget('粗糙银锭', 0.056)
+   p14.addget('幸运咒语', 0.056)
+   p14.addget('银原矿石', 1.71)
+   p14.addget('祝圣秘银', 0.353)
    dts.append(p14)
-
-   p13 = dt(16, '2-4')
-   p13.addget('未知种根骨', 0.7)
-   p13.addget('粗糙银锭', 0.7)
-   p13.addget('颤颤之齿', 0.3)
-   p13.addget('苦盐簇', 0.3)
-   p13.addget('破碎骨片', 0.3)
-   p13.addget('银原矿石', 0.3)
-   p13.addget('清扫咒', 0.3)
-   dts.append(p13)
-
-
-
-   p15 = dt(16, '2-5')
-   p15.addget('幸运咒语', 0.7)
-   p15.addget('粗糙银锭', 0.7)
-   p15.addget('颤颤之齿', 0.3)
-   p15.addget('苦盐簇', 0.3)
-   p15.addget('破碎骨片', 0.3)
-   p15.addget('银原矿石', 0.3)
-   p15.addget('清扫咒', 0.3)
-   dts.append(p15)
-
-   p16 = dt(16, '2-6')
-   p16.addget('液化战栗', 0.3)
-   p16.addget('精磨苦盐', 0.3)
-   p16.addget('未知种根骨', 0.3)
-   p16.addget('粗糙银锭', 0.3)
-   p16.addget('清扫咒', 2.3)
-   p16.addget('幸运咒语', 0.3)
-   p16.addget('百灵百验鸟', 0.3)
-   dts.append(p16)
+   #
+   # p13 = dt(16, '2-4')
+   # p13.addget('未知种根骨', 0.7)
+   # p13.addget('粗糙银锭', 0.7)
+   # p13.addget('颤颤之齿', 0.3)
+   # p13.addget('苦盐簇', 0.3)
+   # p13.addget('破碎骨片', 0.3)
+   # p13.addget('银原矿石', 0.3)
+   # p13.addget('清扫咒', 0.3)
+   # dts.append(p13)
+   #
+   #
+   #
+   # p15 = dt(16, '2-5')
+   # p15.addget('幸运咒语', 0.7)
+   # p15.addget('粗糙银锭', 0.7)
+   # p15.addget('颤颤之齿', 0.3)
+   # p15.addget('苦盐簇', 0.3)
+   # p15.addget('破碎骨片', 0.3)
+   # p15.addget('银原矿石', 0.3)
+   # p15.addget('清扫咒', 0.3)
+   # dts.append(p15)
+   #
+   # p16 = dt(16, '2-6')
+   # p16.addget('液化战栗', 0.3)
+   # p16.addget('精磨苦盐', 0.3)
+   # p16.addget('未知种根骨', 0.3)
+   # p16.addget('粗糙银锭', 0.3)
+   # p16.addget('清扫咒', 2.3)
+   # p16.addget('幸运咒语', 0.3)
+   # p16.addget('百灵百验鸟', 0.3)
+   # dts.append(p16)
 
    p16 = dt(16, '2-8')
-   p16.addget('液化战栗', 0.3)
-   p16.addget('精磨苦盐', 0.3)
-   p16.addget('未知种根骨', 0.3)
-   p16.addget('粗糙银锭', 0.3)
-   p16.addget('破碎骨片', 2.3)
-   p16.addget('幸运咒语', 0.3)
-   p16.addget('双头形骨架', 0.3)
+   p16.addget('液化战栗', 0.0194)
+   p16.addget('精磨苦盐', 0.036)
+   p16.addget('未知种根骨', 0.0528)
+   p16.addget('粗糙银锭', 0.0306)
+   p16.addget('破碎骨片', 1.625)
+   p16.addget('幸运咒语', 0.0556)
+   p16.addget('双头形骨架', 0.3056)
    dts.append(p16)
 
    p17 = dt(16, '2-9')
-   p17.addget('清扫咒', 0.3)
-   p17.addget('苦盐簇', 2.3)
-   p17.addget('幸运咒语', 0.3)
-   p17.addget('盐封曼德拉', 0.3)
+   p17.addget('清扫咒', 0.7306)
+   p17.addget('苦盐簇', 1)
+   p17.addget('幸运咒语', 0.01417)
+   p17.addget('盐封曼德拉', 0.275)
    dts.append(p17)
 
-   p18 = dt(16, '2-10')
-   p18.addget('精磨苦盐', 0.7)
-   p18.addget('未知种根骨', 0.3)
-   p18.addget('颤颤之齿', 0.3)
-   p18.addget('苦盐簇', 0.3)
-   p18.addget('破碎骨片', 0.3)
-   p18.addget('银原矿石', 0.3)
-   p18.addget('清扫咒', 0.3)
-   dts.append(p18)
+   # p18 = dt(16, '2-10')
+   # p18.addget('精磨苦盐', 0.7)
+   # p18.addget('未知种根骨', 0.3)
+   # p18.addget('颤颤之齿', 0.3)
+   # p18.addget('苦盐簇', 0.3)
+   # p18.addget('破碎骨片', 0.3)
+   # p18.addget('银原矿石', 0.3)
+   # p18.addget('清扫咒', 0.3)
+   # dts.append(p18)
 
-   p19 = dt(16, '2-11')
-   p19.addget('液化战栗', 0.3)
-   p19.addget('精磨苦盐', 0.3)
-   p19.addget('未知种根骨', 0.3)
-   p19.addget('粗糙银锭', 0.3)
-   p19.addget('清扫咒', 0.3)
-   p19.addget('幸运咒语', 2.3)
-   dts.append(p19)
+   # p19 = dt(16, '2-11')
+   # p19.addget('液化战栗', 0.3)
+   # p19.addget('精磨苦盐', 0.3)
+   # p19.addget('未知种根骨', 0.3)
+   # p19.addget('粗糙银锭', 0.3)
+   # p19.addget('清扫咒', 0.3)
+   # p19.addget('幸运咒语', 2.3)
+   # dts.append(p19)
 
    p20 = dt(18, '2-12')
-   p20.addget('液化战栗', 0.3)
-   p20.addget('精磨苦盐', 0.3)
-   p20.addget('未知种根骨', 0.3)
-   p20.addget('粗糙银锭', 0.3)
-   p20.addget('颤颤之齿', 2.3)
-   p20.addget('幸运咒语', 0.3)
-   p20.addget('齿咬盒', 0.3)
+   p20.addget('液化战栗', 0.0167)
+   p20.addget('精磨苦盐', 0.0433)
+   p20.addget('未知种根骨', 0.0433)
+   p20.addget('粗糙银锭', 0.06)
+   p20.addget('颤颤之齿', 1)
+   p20.addget('幸运咒语', 0.06)
+   p20.addget('齿咬盒', 0.2867)
    dts.append(p20)
 
-   p21 = dt(18, '2-13')
-   p21.addget('液化战栗', 0.7)
-   p21.addget('精磨苦盐', 0.3)
-   p21.addget('颤颤之齿', 0.3)
-   p21.addget('苦盐簇', 0.3)
-   p21.addget('破碎骨片', 0.3)
-   p21.addget('银原矿石', 0.3)
-   p21.addget('清扫咒', 0.3)
-   dts.append(p21)
+   # p21 = dt(18, '2-13')
+   # p21.addget('液化战栗', 0.7)
+   # p21.addget('精磨苦盐', 0.3)
+   # p21.addget('颤颤之齿', 0.3)
+   # p21.addget('苦盐簇', 0.3)
+   # p21.addget('破碎骨片', 0.3)
+   # p21.addget('银原矿石', 0.3)
+   # p21.addget('清扫咒', 0.3)
+   # dts.append(p21)
 
    # p22 = dt(18, '2-14')
    # p22.addget('液化战栗', 0.3)
@@ -329,67 +474,74 @@ def initclanddts(cls):
    # dts.append(p22)
 
    p23 = dt(18, '3-3')
-   p23.addget('清扫咒', 0.7)
-   p23.addget('银原矿石', 0.7)
-   p23.addget('幸运咒语', 0.3)
-   p23.addget('金爪灵摆', 0.3)
+   p23.addget('清扫咒', 1.3786)
+   p23.addget('银原矿石', 0.7357)
+   p23.addget('幸运咒语', 0.2929)
+   p23.addget('金爪灵摆', 0.2643)
    dts.append(p23)
-
-   p24 = dt(18, '3-5')
-   p24.addget('罗马金币', 0.3)
-   p24.addget('银原矿石', 0.7)
-   p24.addget('粗糙银锭', 0.3)
-   dts.append(p24)
-
-   p25 = dt(18, '3-6')
-   p25.addget('液化战栗', 0.3)
-   p25.addget('精磨苦盐', 0.3)
-   p25.addget('未知种根骨', 0.7)
-   p25.addget('粗糙银锭', 0.3)
-   p25.addget('破碎骨片', 0.3)
-   p25.addget('幸运咒语', 0.3)
-   p25.addget('颤颤之齿', 0.3)
-   dts.append(p25)
+   #
+   # p24 = dt(18, '3-5')
+   # p24.addget('罗马金币', 0.3)
+   # p24.addget('银原矿石', 0.7)
+   # p24.addget('粗糙银锭', 0.3)
+   # dts.append(p24)
+   #
+   # p25 = dt(18, '3-6')
+   # p25.addget('液化战栗', 0.3)
+   # p25.addget('精磨苦盐', 0.3)
+   # p25.addget('未知种根骨', 0.7)
+   # p25.addget('粗糙银锭', 0.3)
+   # p25.addget('破碎骨片', 0.3)
+   # p25.addget('幸运咒语', 0.3)
+   # p25.addget('颤颤之齿', 0.3)
+   # dts.append(p25)
 
    p26 = dt(18, '3-7')
-   p26.addget('破碎骨片', 0.7)
-   p26.addget('颤颤之齿', 0.7)
-   p26.addget('液化战栗', 0.3)
-   p26.addget('双头形骨架', 0.3)
+   p26.addget('破碎骨片', 0.6781)
+   p26.addget('颤颤之齿', 0.6438)
+   p26.addget('液化战栗', 0.2031)
+   p26.addget('双头形骨架', 0.3219)
    dts.append(p26)
 
    p27 = dt(18, '3-8')
-   p27.addget('破碎骨片', 0.7)
-   p27.addget('银原矿石', 0.7)
-   p27.addget('未知种根骨', 0.3)
-   p27.addget('祝圣秘银', 0.3)
+   p27.addget('破碎骨片', 0.6528)
+   p27.addget('银原矿石', 1.15)
+   p27.addget('未知种根骨', 0.3333)
+   p27.addget('祝圣秘银', 0.3472)
    dts.append(p27)
 
    p28 = dt(18, '3-9')
-   p28.addget('液化战栗', 0.3)
-   p28.addget('精磨苦盐', 0.3)
-   p28.addget('未知种根骨', 0.3)
-   p28.addget('粗糙银锭', 0.7)
-   p28.addget('清扫咒', 0.7)
-   p28.addget('幸运咒语', 0.3)
-   p28.addget('百灵百验鸟', 0.3)
+   p28.addget('液化战栗', 0.025)
+   p28.addget('精磨苦盐', 0.0208)
+   p28.addget('未知种根骨', 0.0667)
+   p28.addget('粗糙银锭', 0.5125)
+   p28.addget('清扫咒', 0.5750)
+   p28.addget('幸运咒语', 0.0542)
+   p28.addget('百灵百验鸟', 0.425)
    dts.append(p28)
 
-   p29 = dt(18, '3-11')
-   p29.addget('狂人絮语', 0.05)
-   p29.addget('苦盐簇', 0.7)
-   p29.addget('精磨苦盐', 0.3)
-   p29.addget('盐封曼德拉', 0.3)
+   p290 = dt(18, '3-11')
+   p290.addget('清扫咒', 0.6929)
+   p290.addget('苦盐簇', 0.3893)
+   p290.addget('精磨苦盐', 0.01107)
+   p290.addget('金爪灵摆', 0.3071)
+   dts.append(p290)
+
+   p29 = dt(18, '3-13')
+   p29.addget('狂人絮语', 0.03)
+   p29.addget('苦盐簇', 0.7031)
+   p29.addget('精磨苦盐', 0.01063)
+   p29.addget('盐封曼德拉', 0.35)
    dts.append(p29)
 
-   p30 = dt(18, '3-15')
-   p30.addget('液化战栗', 0.3)
-   p30.addget('精磨苦盐', 0.3)
-   p30.addget('未知种根骨', 0.3)
-   p30.addget('粗糙银锭', 0.7)
-   p30.addget('银原矿石', 0.7)
-   p30.addget('幸运咒语', 0.3)
-   dts.append(p30)
+   # p30 = dt(18, '3-15')
+   # p30.addget('液化战栗', 0.3)
+   # p30.addget('精磨苦盐', 0.3)
+   # p30.addget('未知种根骨', 0.3)
+   # p30.addget('粗糙银锭', 0.7)
+   # p30.addget('银原矿石', 0.7)
+   # p30.addget('幸运咒语', 0.3)
+   # dts.append(p30)
 
    # p31 = dt(18, '4-3')
    # p31.addget('液化战栗', 0.3)
@@ -399,59 +551,60 @@ def initclanddts(cls):
    # p31.addget('幸运咒语', 0.3)
    # dts.append(p31)
 
-   p32 = dt(18, '4-4')
-   p32.addget('液化战栗', 0.7)
-   p32.addget('清扫咒', 0.3)
-   p32.addget('幸运咒语', 0.7)
-   dts.append(p32)
-
-   ########
-
+   # p32 = dt(18, '4-4')
+   # p32.addget('液化战栗', 0.7)
+   # p32.addget('清扫咒', 0.3)
+   # p32.addget('幸运咒语', 0.7)
+   # dts.append(p32)
+   #
+   # ########
+   #
    p35 = dt(18, '4-10')
-   p35.addget('液化战栗', 0.3)
-   p35.addget('精磨苦盐', 0.3)
-   p35.addget('未知种根骨', 0.3)
-   p35.addget('粗糙银锭', 0.7)
-   p35.addget('清扫咒', 0.7)
-   p35.addget('幸运咒语', 0.3)
-   p35.addget('齿咬盒', 0.3)
+   p35.addget('液化战栗', 0.02)
+   p35.addget('精磨苦盐', 0.05)
+   p35.addget('未知种根骨', 0.0333)
+   p35.addget('粗糙银锭', 0.59)
+   p35.addget('银原矿石', 0.7233)
+   p35.addget('幸运咒语', 0.0367)
+   p35.addget('齿咬盒', 0.26)
    dts.append(p35)
 
    p36 = dt(18, '4-11')
-   p36.addget('破碎骨片', 0.7)
-   p36.addget('清扫咒', 0.7)
-   p36.addget('未知种根骨', 0.3)
-   p36.addget('百灵百验鸟', 0.3)
+   p36.addget('破碎骨片', 1.2667)
+   p36.addget('清扫咒', 0.5625)
+   p36.addget('未知种根骨', 0.2833)
+   p36.addget('百灵百验鸟', 0.4375)
    dts.append(p36)
 
+   p37 = dt(18, '4-13')
+   p37.addget('精磨苦盐', 0.2361)
+   p37.addget('银原矿石', 0.6611)
+   p37.addget('苦盐簇', 0.7916)
+   p37.addget('祝圣秘银', 0.3528)
+   dts.append(p37)
    ####
 
    p38 = dt(18, '4-16')
-   p38.addget('液化战栗', 0.3)
-   p38.addget('精磨苦盐', 0.3)
-   p38.addget('未知种根骨', 0.3)
-   p38.addget('粗糙银锭', 0.3)
-   p38.addget('幸运咒语', 2.3)
+   p38.addget('液化战栗', 0.025)
+   p38.addget('精磨苦盐', 0.025)
+   p38.addget('未知种根骨', 0.0307)
+   p38.addget('粗糙银锭', 0.0208)
+   p38.addget('幸运咒语', 2.0333)
    dts.append(p38)
 
    p39 = dt(18, '4-20')
-   p39.addget('破碎骨片', 0.7)
-   p39.addget('清扫咒', 0.7)
-   p39.addget('幸运咒语', 0.3)
-   p39.addget('双头形骨架', 0.3)
+   p39.addget('破碎骨片', 0.6688)
+   p39.addget('清扫咒', 2.175)
+   p39.addget('幸运咒语', 0.4438)
+   p39.addget('双头形骨架', 0.3313)
    dts.append(p39)
 
    p40 = dt(18, '4-21')
-   p40.addget('颤颤之齿', 0.7)
+   p40.addget('颤颤之齿', 0.6406)
    p40.addget('苦盐簇', 0.7)
-   p40.addget('液化战栗', 0.3)
-   p40.addget('盐封曼德拉', 0.3)
+   p40.addget('液化战栗', 0.2125)
+   p40.addget('盐封曼德拉', 0.3031)
    dts.append(p40)
-
-   def initcl(f):
-      for i in dts:
-         if i.gets.get(f.name, 0.0) != 0:
-            f.dtlist.append(i)
 
    f1 = cl('颤颤之齿')
    initcl(f1)
@@ -596,27 +749,31 @@ def initclanddts(cls):
    initcl(f26)
    cls['分辨善恶之果'] = f26
 
-initclanddts(cls)
+initclanddts()
 
 
 def main():
    times = time.time()
-   needs = {'盐封曼德拉':5}#,'金爪灵摆':3}#,'分辨善恶之果':1
+   # needs = {'分辨善恶之果':1}#'盐封曼德拉':5}#,,'分辨善恶之果':2
+   needs = getneed()
+   print(needs)
    solve(needs)
+   print()
    for i in bestsolves:
-      print(i.name,' ', i.sums, '次')
+      print(i[0],' ', i[1], '次')
 
    p = {}
    for i in bestsolves:
       for j in dts:
-         if i.name == j.name:
+         if i[0] == j.name:
             # print(p)
-            j.playsum(p,i.sums)
+            j.playsum(p,i[1])
             # print(p,j.gets)
-   print('计算',sumf,'次，消耗',mincost,'点体力，耗时{:2f}s'.format(time.time()-times))
+   print('消耗',mincost,'点体力，耗时{:2f}s'.format(time.time()-times))
    for i in p:
       print(i,p[i])
 
 
 if __name__ == '__main__':
    main()
+   input('按任意键退出')
