@@ -19,8 +19,9 @@ sys_function = calculator.SysFuntion()
 
 def updata(_):
     if sys_function.get:
-        sys_function.function(sys_function.args)
         sys_function.get = False
+        sys_function.function(sys_function.args)
+
 
 
 def massagebox(err, title='error'):
