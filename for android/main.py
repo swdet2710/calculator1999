@@ -46,7 +46,7 @@ def show_map_massage(_):
     calculator.init()
     calculator.initclanddts()
     for i in calculator.Levels:
-        strs+= i.name + '({0:2f}),价值：{1:.2f},价体比：{2:.2f}\n'.format(i.cost,i.value,i.value/i.cost)
+        strs+= i.name + '({0:2d}),价值：{1:.2f},价体比：{2:.2f}\n'.format(i.cost,i.value,i.value/i.cost)
     massagebox(strs,'实时地图信息',True)
 
 
