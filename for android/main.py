@@ -24,16 +24,30 @@ def updata(_):
 
 
 
-def massagebox(err, title='error'):
+def massagebox(err, title='error',out=False):
     content = BoxLayout(orientation='vertical')
     size1, size2 = Window.size
-    dialog = Popup(title=title, content=content, size_hint=(None, None), size=(size1 / 1.2, size2 / 2))
-    title_input = Label(text=str(err))
+
+    if  out:
+        dialog = Popup(title=title, content=content, size_hint=(None, None), size=(size1 / 1.2, size2 *0.8))
+        title_input = TextInput(text=str(err),size_hint_y=None, height=size2*0.6)
+
+    else:
+        dialog = Popup(title=title, content=content, size_hint=(None, None), size=(size1 / 1.2, size2 / 2))
+        title_input = Label(text=str(err))
     submit_button = Button(text='确认',
                            on_release=dialog.dismiss)
     content.add_widget(title_input)
     content.add_widget(submit_button)
     dialog.open()
+
+def show_map_massage(_):
+    strs = ''
+    calculator.init()
+    calculator.initclanddts()
+    for i in calculator.Levels:
+        strs+= i.name + '({0:2f}),价值：{1:.2f},价体比：{2:.2f}\n'.format(i.cost,i.value,i.value/i.cost)
+    massagebox(strs,'实时地图信息',True)
 
 
 class DialogApp(App):
@@ -137,7 +151,7 @@ class DialogApp(App):
         self.needs = {}
         main_layout = BoxLayout(orientation='vertical')
 
-        top_section = BoxLayout(size_hint_y=None, height=size2 / 5)
+        top_section = BoxLayout(size_hint_y=None, height=size2 / 10)
         top_button = Button(text="计算")
         top_button.bind(on_release=self.lop_calculator)
         top_section.add_widget(top_button)
@@ -163,6 +177,10 @@ class DialogApp(App):
 
         self.buttons = []
 
+        button = Button(text='显示地图信息')
+        button.bind(on_release=show_map_massage)
+        bottom_section.add_widget(button)
+
         for i in range(1, len(calculator.de_dirc_list) - 2):
             text = calculator.de_dirc_list[len(calculator.de_dirc_list) - 2 - i] + ':'
             button = Button(text=text)
@@ -174,7 +192,7 @@ class DialogApp(App):
         top_button3 = Button(text="价体比限制" + str(calculator.sets.value_type))
         i = len(calculator.de_dirc_list) - 2
         top_button3.bind(on_release=lambda instance, num=i: self.open_dialog(num, self.submit_dialog_float))
-        self.buttons.append((i, "价体比限制", top_button3))
+        self.buttons.append((i, "地图价体比限制", top_button3))
         top_section3.add_widget(top_button3)
 
         top_button4 = Button(text="计算复杂度" + str(calculator.sets.difficult))
