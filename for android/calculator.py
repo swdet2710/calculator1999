@@ -1,4 +1,4 @@
-#vision 2.3.0
+#vision 2.3.1
 import math
 import time
 from itertools import permutations
@@ -26,7 +26,7 @@ for s in dirc_list:
 
 class Sets:
     def __init__(self):
-        self.value_type = 1.2
+        self.value_type = 0.9
         self.difficult = 1
 
 sets = Sets()
@@ -95,25 +95,20 @@ bestsolves = []
 mincost = 0
 mincostvalue = 0
 
-valuesolves = []
-valuelevel = 0
-minvaluecost = 0
-
 
 def init():
-    global getsolve, bestsolves, mincost, mincostvalue, valuesolves, valuelevel, minvaluecost
+    global getsolve, bestsolves, mincost, mincostvalue,Materials,Materials2,Levels
+    Materials = {}
+    Materials2 = {}
+    Levels = []
     getsolve = False
     bestsolves = []
     mincost = 0
     mincostvalue = 0
 
-    valuesolves = []
-    valuelevel = 0
-    minvaluecost = 0
-
 
 def solve_leveldeep(perm, level_list: dict, cost=0.0, value=0.0):
-    global mincost, bestsolves, minvaluecost, valuelevel, valuesolves, getsolve, mincostvalue
+    global mincost, bestsolves, getsolve, mincostvalue
     # f = perm.copy()
     if not perm:
         return
@@ -121,31 +116,13 @@ def solve_leveldeep(perm, level_list: dict, cost=0.0, value=0.0):
     for i in perm:
         if Materials2[i].level_list:
             break
-    # print(i,len(perm))
-
-    # mincos = 0
-    # maxval = 0
-    # play = [0,0]
     for j in Materials2[i].level_list:
-        # play_sum = math.ceil(j.getone(i) * perm[i])
-        # addcost = cost +j.cost * play_sum
-        # if  addcost < mincos or not mincos:
-        #    mincos = addcost
-        #    play[0] = j
-        # valueadd = value + j.value * play_sum
-        # if valueadd/addcost > maxval:
-        #    maxval = valueadd/addcost
-        #    play[1] = j
-
-        # level_list2[j.name] = level_list2.get(j.name, 0.0) + play_sum
-        # j.deplaysum(ff, play_sum)
-        # for j in play:
 
         play_sum = math.ceil(j.getone(i) * perm[i])
 
         cost += j.cost * play_sum
         value += j.value * play_sum
-        if mincost and ((cost > mincost and (valuelevel and valuelevel > value / cost)) or cost > mincost * sets.value_type):
+        if mincost and cost > mincost:
             cost -= j.cost * play_sum
             value -= j.value * play_sum
             continue
@@ -166,22 +143,6 @@ def solve_leveldeep(perm, level_list: dict, cost=0.0, value=0.0):
                 if mincostvalue < value / cost:
                     bestsolves = level_list2.copy()
                     mincostvalue = value / cost
-                getsolve = True
-
-            if (not valuelevel or valuelevel < value / cost) and cost < mincost * sets.value_type:
-                valuesolves = level_list2.copy()
-                valuelevel = value / cost
-                minvaluecost = cost
-                getsolve = True
-            elif valuelevel == value / cost:
-                if cost < minvaluecost:
-                    valuesolves = level_list2.copy()
-                    minvaluecost = cost
-                getsolve = True
-            if minvaluecost > cost * sets.value_type:
-                valuesolves = level_list2.copy()
-                valuelevel = value / cost
-                minvaluecost = cost
                 getsolve = True
         # print(valuesolves,minvaluecost,cost,mincost)
         cost -= j.cost * play_sum
@@ -341,6 +302,7 @@ def initcl(f):
 
 
 def initclanddts():
+    global Levels
     p = Level(18, '5-4普通')
     p.addget('砂金甲虫', 0.2832)
     p.addget('液化战栗', 0.0075)
@@ -657,6 +619,17 @@ def initclanddts():
     p.addget('液化战栗', 0.0273)
     Levels.append(p)
 
+    Levels.reverse()
+
+    keep = True
+    while keep:
+        keep = False
+        for i in range(len(Levels)):
+            if Levels[i].value / Levels[i].cost < sets.value_type:
+                Levels.pop(i)
+                keep = True
+                break
+
     f1 = Material('颤颤之齿')
     initcl(f1)
     Materials['颤颤之齿'] = f1
@@ -856,9 +829,8 @@ def initclanddts():
     for i in Materials:
       Materials2[dirc_list[i]] = Materials[i]
 
-initclanddts()
-# for i in Levels:
-#     print(i.name,":{0:.2f}".format(i.value/i.cost))
+
+
 
 def strp(a: str, b: str):
     for i, j in zip(a, b):
@@ -883,14 +855,17 @@ def sorts(f: dict):
     return ff
 
 
-# for i in Levels:
-#    print(i.name,i.value,i.value/i.cost)
+
 
 def main(needs: dict,sys_function:SysFuntion):
-    global bestsolves, valuesolves
+    global bestsolves
     if not needs:
         return '请填写需要的材料'
+
     init()
+    initclanddts()
+    # for i in Levels:
+    #     print(i.name, i.value / i.cost)
     strs = ''
     times = time.time()
     # needs = {'分辨善恶之果':1}#'盐封曼德拉':5}#,,'分辨善恶之果':2
@@ -904,13 +879,12 @@ def main(needs: dict,sys_function:SysFuntion):
     # needs.clear()
     # print()
     bestsolves = sorts(bestsolves)
-    valuesolves = sorts(valuesolves)
 
     for i in bestsolves:
         strs += i + ' ' + str(bestsolves[i]) + '次\n'
     # print(tss,sums,sumf)
     p = {}
-    value = 0
+    value = 0.0
 
     for i in bestsolves:
         for j in Levels:
@@ -918,30 +892,16 @@ def main(needs: dict,sys_function:SysFuntion):
                 # print(p)
                 j.playsum(p, bestsolves[i])
                 value += j.value * bestsolves[i]
+                # print(j.name,value,j.value)
                 # print(p,j.gets)
     if mincost:
         strs += '消耗{0:.2f}点体力，价值{1:.2f}，价体力比{2:.2f}，耗时{3:.2f}s\n'.format(mincost,value,value / mincost,time.time() - times)
     #p[dirc_list['利齿子儿']] = p.get(dirc_list['利齿子儿'], 0.0) + 10 * mincost
     for i in p:
         strs += de_dirc_list[i] + '{0:.2f}\n'.format(p[i])
-    cost = 0
-    strs += '------------------价值版-------------------\n'
-    for i in valuesolves:
-        strs += i + ' ' + str(valuesolves[i]) + '次\n'
-    p = {}
-    for i in valuesolves:
-        for j in Levels:
-            if i == j.name:
-                # print(p)
-                j.playsum(p, valuesolves[i])
-                cost += j.cost * valuesolves[i]
-                # print(p,j.gets)
-    if valuelevel is not None:
-        strs += '消耗{0:.2f}点体力，价值{1:.2f}，价体力比{2:.2f}\n'.format(cost,valuelevel * cost,valuelevel)
-    #p[dirc_list['利齿子儿']] = p.get(dirc_list['利齿子儿'], 0.0) + 10 * mincost
-    for i in p:
-        strs += de_dirc_list[i] + '{0:.2f}\n'.format(p[i])
     strs += 'APP、计算程序均由b站@熙影镜制作，本计算器材料的掉率以及价值参考均取自NGA伴春风而归的材料掉率共建表，本计算器不用于任何商业用途，仅供交流使用，如在使用时碰到任何问题，或者希望了解一些计算方法，欢迎私信或者评论'
+    # for i in Levels:
+    #    print(i.name,i.value,i.value/i.cost)
     return strs
 
 
